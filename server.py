@@ -2,11 +2,26 @@ import socket
 import threading
 
 # Set up server
-HOST = '127.0.0.1'  # Host IP address
+HOST = 'localhost'  # Host IP address
 PORT = 5000  # Port to listen on
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((HOST, PORT))
 server.listen()
+
+def broadcast(msg, sender):
+    """
+    Broadcast a message to all connected clients
+
+    :param msg: Message to broadcast
+    :param sender: Client that sent the message
+    """
+    for client in clients:
+        if client != sender:
+            try:
+                client.send(msg.encode())
+            except:
+                # Remove disconnected client
+                clients.remove(client)
 
 def handle_client(client):
     """
