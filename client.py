@@ -1,61 +1,42 @@
 import socket
 import threading
 
-# Set up server
-HOST = ''  # Host IP address
-PORT = 5000  # Port to listen on
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.bind((HOST, PORT))
-server.listen()
+# Set up client
+HOST = '127.0.0.3'  # Local server IP address
+PORT = 5001  # Port to connect to
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client.connect((HOST, PORT))
 
-# Set up list of clients
-clients = []
-
-def broadcast(msg, sender):
+def receive_messages():
     """
-    Broadcast a message to all connected clients
-
-    :param msg: Message to broadcast
-    :param sender: Client that sent the message
-    """
-    for client in clients:
-        if client != sender:
-            try:
-                client.send(msg.encode())
-            except:
-                # Remove disconnected client
-                clients.remove(client)
-
-def handle_client(client):
-    """
-    Handle a client connection
-
-    :param client: Client socket object
+    Receive messages from server and print them
     """
     while True:
         try:
             msg = client.recv(1024).decode()
-            broadcast(msg, client)
+            print(msg)
         except:
-            # Remove disconnected client
-            clients.remove(client)
+            # Server has disconnected
             client.close()
             break
 
-def accept_clients():
+def send_messages():
     """
-    Accept incoming client connections
+    Send messages to server
     """
     while True:
-        client, addr = server.accept()
-        clients.append(client)
-        print(f'Connected to {addr}')
-
-        # Start thread to handle client
-        thread = threading.Thread(target=handle_client, args=(client,))
-        thread.start()
+        try:
+            msg = input()
+            client.send(msg.encode())
+        except:
+            # Server has disconnected
+            client.close()
+            break
 
 if __name__ == '__main__':
-    # Start accepting clients
-    print('Waiting for connections...')
-    accept_clients()
+    # Start threads to receive and send messages
+    thread_receive = threading.Thread(target=receive_messages)
+    thread_receive.start()
+
+    thread_send = threading.Thread(target=send_messages)
+    thread_send.start()
