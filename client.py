@@ -1,42 +1,41 @@
 import socket
 import threading
 
-# Set up client
-HOST = '127.0.0.3'  # Local server IP address
-PORT = 5001  # Port to connect to
-client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect((HOST, PORT))
+class Client:
+    def __init__(self, host, port):
+        self.host = host
+        self.port = port
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-def receive_messages():
-    """
-    Receive messages from server and print them
-    """
-    while True:
-        try:
-            msg = client.recv(1024).decode()
-            print(msg)
-        except:
-            # Server has disconnected
-            client.close()
-            break
+    def connect(self):
+        self.socket.connect((self.host, self.port))
 
-def send_messages():
-    """
-    Send messages to server
-    """
-    while True:
-        try:
-            msg = input()
-            client.send(msg.encode())
-        except:
-            # Server has disconnected
-            client.close()
-            break
+    def send(self, msg):
+        self.socket.sendall(msg.encode())
+
+    def receive(self):
+        while True:
+            r_msg = self.socket.recv(1024)
+            if not r_msg:
+                break
+            if r_msg == b'':
+                pass
+            else:
+                print(r_msg)
+
+    def start(self):
+        self.connect()
+        thread1 = threading.Thread(target=self.receive)
+        thread1.start()
+        while True:
+            msg = input().replace('b', '')
+            if msg == 'exit':
+                self.socket.close()
+                break
+            else:
+                self.send(msg)
 
 if __name__ == '__main__':
-    # Start threads to receive and send messages
-    thread_receive = threading.Thread(target=receive_messages)
-    thread_receive.start()
-
-    thread_send = threading.Thread(target=send_messages)
-    thread_send.start()
+    client = Client('localhost', 11111)
+    client.start()

@@ -1,59 +1,35 @@
 import socket
 import threading
 
-# Set up server
-HOST = 'localhost'  # Host IP address
-PORT = 5000  # Port to listen on
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.bind((HOST, PORT))
-server.listen()
+class Server:
+    def __init__(self, port):
+        self.port = port
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-def broadcast(msg, sender):
-    """
-    Broadcast a message to all connected clients
+    def start(self):
+        self.socket.bind(('', self.port))
+        self.socket.listen()
+        (conn, addr) = self.socket.accept()
+        thread1 = threading.Thread(target=self.connect, args=(conn,))
+        thread1.start()
+        while True:
+            msg = input().replace('b', '')
+            if msg == 'exit':
+                conn.close()
+                self.socket.close()
+                break
+            else:
+                conn.sendall(msg.encode())
 
-    :param msg: Message to broadcast
-    :param sender: Client that sent the message
-    """
-    for client in clients:
-        if client != sender:
-            try:
-                client.send(msg.encode())
-            except:
-                # Remove disconnected client
-                clients.remove(client)
-
-def handle_client(client):
-    """
-    Handle a client connection
-
-    :param client: Client socket object
-    """
-    while True:
-        try:
-            msg = client.recv(1024).decode()
-            broadcast(msg, client)
-        except:
-            # Remove disconnected client
-            clients.remove(client)
-            client.close()
-            break
-
-def accept_clients():
-    """
-    Accept incoming client connections
-    """
-    while True:
-        client, addr = server.accept()
-        clients.append(client)
-        print(f'Connected to {addr}')
-
-        # Start thread to handle client
-        thread = threading.Thread(target=handle_client, args=(client,))
-        thread.start()
+    def connect(self, conn):
+        while True:
+            received = conn.recv(1024)
+            if received == b'':
+                pass
+            else:
+                print(received)
 
 if __name__ == '__main__':
-    # Start accepting clients
-    print('Waiting for connections...')
-    clients = []
-    accept_clients()
+    server = Server(11111)
+    server.start()
