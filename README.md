@@ -1,4 +1,4 @@
-Peer-to-peer Chat System using Python
+### Peer-to-peer Chat System using Python <br />
 This is a simple peer-to-peer chat system implemented in Python 3. It allows client to connect to a server and communicate with each other using text messages.
 
 Requirements
