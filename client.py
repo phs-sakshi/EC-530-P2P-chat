@@ -12,7 +12,7 @@ class Client:
         self.socket.connect((self.host, self.port))
 
     def send(self, msg):
-        self.socket.sendall(msg.encode())
+        self.socket.sendall(msg.encode('utf-8'))
 
     def receive(self):
         while True:
@@ -22,14 +22,14 @@ class Client:
             if r_msg == b'':
                 pass
             else:
-                print(r_msg)
+                print(r_msg.decode('utf-8'))
 
     def start(self):
         self.connect()
         thread1 = threading.Thread(target=self.receive)
         thread1.start()
         while True:
-            msg = input().replace('b', '')
+            msg = input()
             if msg == 'exit':
                 self.socket.close()
                 break
